@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>메뉴 주문 페이지</title>
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+    }
+
+    .layout {
+      display: flex;
+      height: 100vh; /* 전체 화면 높이 */
+    }
+
+    .menu, .cart {
+      flex: 1;
+      border-right: 1px solid #ddd;
+      padding: 16px;
+      overflow-y: auto; /* 내부만 개별 스크롤 */
+    }
+
+    .cart {
+      border-right: none;
+      border-left: 1px solid #ddd;
+    }
+
+    h2 {
+      position: sticky;
+      top: 0;
+      background: white;
+      padding: 10px 0;
+      margin: 0 0 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .menu-item, .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    button {
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="layout">
+    
+    <!-- 좌측 메뉴 -->
+    <div class="menu">
+      <h2>메뉴</h2>
+      <div id="menu-list"></div>
+    </div>
+
+    <!-- 우측 선택한 메뉴 -->
+    <div class="cart">
+      <h2>선택한 메뉴</h2>
+      <div id="cart-list"></div>
+      <hr />
+      <h3>총 합계: <span id="total-price">0</span>원</h3>
+    </div>
+
+  </div>
+
+  <script>
+    let menuList = [];
+    let cart = {};
+
+    const menuEl = document.getElementById("menu-list");
+    const cartEl = document.getElementById("cart-list");
+    const totalEl = document.getElementById("total-price");
+
+    // CSV 로드
+    async function loadCSV() {
+      const res = await fetch("menu.csv");
+      const text = await res.text();
+      parseCSV(text);
+      renderMenu();
+    }
+
+    // CSV 파싱
+    function parseCSV(csv) {
+      const lines = csv.trim().split("\n");
+      menuList = lines.slice(1).map(line => {
+        const [id, name, price] = line.split(",");
+        return { id: Number(id), name, price: Number(price) };
+      });
+    }
+
+    // 메뉴 렌더
+    function renderMenu() {
+      menuEl.innerHTML = "";
+      menuList.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "menu-item";
+        div.innerHTML = `
+          <span>${item.name} (${item.price.toLocaleString()}원)</span>
+          <button onclick="addToCart(${item.id})">추가</button>
+        `;
+        menuEl.appendChild(div);
+      });
+    }
+
+    // 장바구니 렌더
+    function renderCart() {
+      cartEl.innerHTML = "";
+
+      const items = Object.values(cart);
+      if (items.length === 0) {
+        cartEl.innerHTML = "<p>선택한 메뉴 없음</p>";
+        totalEl.textContent = "0";
+        return;
+      }
+
+      items.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "cart-item";
+        div.innerHTML = `
+          <span>${item.name} x ${item.qty}</span>
+          <div>
+            <button onclick="addToCart(${item.id})">+</button>
+            <button onclick="decrease(${item.id})">-</button>
+          </div>
+        `;
+        cartEl.appendChild(div);
+      });
+
+      const total = items.reduce(
+        (sum, item) => sum + item.price * item.qty,
+        0
+      );
+      totalEl.textContent = total.toLocaleString();
+    }
+
+    // 추가
+    function addToCart(id) {
+      const item = menuList.find(m => m.id === id);
+      if (!cart[id]) cart[id] = { ...item, qty: 1 };
+      else cart[id].qty += 1;
+      renderCart();
+    }
+
+    // 감소
+    function decrease(id) {
+      if (!cart[id]) return;
+      if (cart[id].qty > 1) cart[id].qty -= 1;
+      else delete cart[id];
+      renderCart();
+    }
+
+    // 초기 실행
+    loadCSV();
+  </script>
+
+</body>
+</html>
