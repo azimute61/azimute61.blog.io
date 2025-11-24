@@ -98,12 +98,10 @@
     .thumb-overlay .name {
       font-weight: 700;
       font-size: 14px;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
     }
 
     .thumb-overlay .price {
       font-size: 13px;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
     }
 
     .qty-control {
@@ -237,6 +235,50 @@
       z-index: 9999;
     }
 
+    /* History modal controls/buttons */
+    .history-controls { display:flex; gap:8px; align-items:center; }
+    .history-controls button { padding:8px 12px; border-radius:6px; border:none; background:#2b8a3e; color:#fff; font-weight:700; cursor:pointer; }
+    .history-controls button.secondary { background:#f5f5f5; color:#333; border:1px solid #ddd; font-weight:700; }
+    .history-controls button:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+    #close-history { margin-left:auto; background:transparent; color:#333; border:1px solid #ddd; padding:6px 10px; }
+    #close-history:hover { background:#f3f3f3; }
+
+    .payment-modal {
+      position: fixed;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+
+    .payment-modal .panel {
+      width: 90%;
+      max-width: 420px;
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+    }
+
+    .payment-row { display:flex; align-items:center; gap:8px; margin:8px 0; }
+    .payment-row label { width:110px; font-weight:700; }
+    .payment-row input { flex:1; padding:8px 10px; border:1px solid #ddd; border-radius:6px; }
+    .payment-amount { flex:1; padding:8px 10px; border:1px solid #ddd; border-radius:6px; background:#fff; min-height:36px; display:flex; align-items:center; }
+    .payment-error { color:#c53030; font-size:13px; margin-top:6px; }
+    .preset-row { display:flex; gap:8px; margin-top:8px; }
+    .preset-btn { flex:1; padding:8px 10px; border-radius:6px; border:1px solid #ddd; background:#f3f7f3; cursor:pointer; font-weight:700; }
+    .numpad { display:grid; grid-template-columns: repeat(3,1fr); gap:8px; margin-top:10px; }
+    .key-btn { padding:12px 0; font-size:16px; border-radius:6px; border:1px solid #ddd; background:#fff; cursor:pointer; }
+
+    .payment-actions { display:flex; gap:8px; margin-top:12px; }
+    .payment-actions button { flex:1; padding:10px 12px; font-size:16px; font-weight:800; border-radius:8px; border:1px solid #2b8a3e; background:#38a169; color:#fff; cursor:pointer; }
+    .payment-actions button.secondary { background:#f5f5f5; color:#333; border:1px solid #ddd; }
+
     .history-modal .panel {
       width: 90%;
       max-width: 720px;
@@ -252,12 +294,23 @@
       padding: 8px 0;
     }
 
+    .history-item-row { display:flex; justify-content:space-between; gap:12px; align-items:center; }
+    .history-item-name { color:#333; }
+    .history-item-price { color:#333; font-weight:700; }
+
     .history-meta {
       display: flex;
       justify-content: space-between;
       gap: 8px;
       font-size: 13px;
       color: #666;
+    }
+    /* Keep only color for per-order totals and the header total (remove extra styling) */
+    .history-meta .order-total {
+      color: #2b8a3e;
+    }
+    #history-total {
+      color: #2b8a3e;
     }
   </style>
 </head>
@@ -276,6 +329,11 @@
       <div id="cart-list"></div>
       <hr />
       <h3>총 합계: <span id="total-price">0</span>원</h3>
+      <div class="transfer-row" style="margin:8px 0;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input id="bank-transfer" type="checkbox" /> 계좌이체
+        </label>
+      </div>
       <div class="cart-buttons">
         <button id="purchase-btn">구매하기</button>
         <button id="history-btn" class="secondary">내역보기</button>
@@ -283,13 +341,59 @@
       <!-- history modal -->
       <div id="history-modal" class="history-modal" aria-hidden="true">
         <div class="panel">
-          <h3>구매 내역</h3>
-          <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <h3 style="margin:0;">구매 내역</h3>
+            <div id="history-total" style="margin-left:auto;font-weight:700;">전체 총액: 0원</div>
+          </div>
+          <div class="history-controls" style="margin-bottom:10px;">
             <button id="export-all" class="secondary">내역 내보내기</button>
             <button id="clear-history" class="secondary">내역 비우기</button>
-            <button id="close-history" style="margin-left:auto;">닫기</button>
+            <button id="close-history">닫기</button>
           </div>
           <div id="history-list"></div>
+        </div>
+      </div>
+      <!-- payment modal -->
+      <div id="payment-modal" class="payment-modal" aria-hidden="true">
+        <div class="panel">
+          <h3 style="margin-top:0;">결제</h3>
+          <div class="payment-row">
+            <label>총액</label>
+            <div id="payment-total">0원</div>
+          </div>
+          <div class="payment-row">
+            <label for="payment-amount">지불액</label>
+            <p id="payment-amount" class="payment-amount" role="textbox" aria-label="지불액">0</p>
+          </div>
+          <div class="preset-row">
+            <button type="button" class="preset-btn" onclick="presetAdd(1000)">+1,000</button>
+            <button type="button" class="preset-btn" onclick="presetAdd(5000)">+5,000</button>
+            <button type="button" class="preset-btn" onclick="presetAdd(10000)">+10,000</button>
+            <button type="button" class="preset-btn" onclick="presetAdd(50000)">+50,000</button>
+          </div>
+          <div class="numpad" role="group" aria-label="숫자패드">
+            <button type="button" class="key-btn" onclick="numpadPress('1')">1</button>
+            <button type="button" class="key-btn" onclick="numpadPress('2')">2</button>
+            <button type="button" class="key-btn" onclick="numpadPress('3')">3</button>
+            <button type="button" class="key-btn" onclick="numpadPress('4')">4</button>
+            <button type="button" class="key-btn" onclick="numpadPress('5')">5</button>
+            <button type="button" class="key-btn" onclick="numpadPress('6')">6</button>
+            <button type="button" class="key-btn" onclick="numpadPress('7')">7</button>
+            <button type="button" class="key-btn" onclick="numpadPress('8')">8</button>
+            <button type="button" class="key-btn" onclick="numpadPress('9')">9</button>
+            <button type="button" class="key-btn" onclick="numpadPress('C')">C</button>
+            <button type="button" class="key-btn" onclick="numpadPress('0')">0</button>
+            <button type="button" class="key-btn" onclick="numpadPress('←')">←</button>
+          </div>
+          <div class="payment-row">
+            <label>거스름돈</label>
+            <div id="payment-change">0원</div>
+          </div>
+          <div id="payment-error" class="payment-error" aria-live="polite"></div>
+          <div class="payment-actions">
+            <button id="confirm-payment">확인</button>
+            <button id="cancel-payment" class="secondary">취소</button>
+          </div>
         </div>
       </div>
     </div>
@@ -426,26 +530,107 @@
     // create an order from current cart, save to orders and trigger download
     function purchase() {
       const items = Object.values(cart).map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty }));
-      if (items.length === 0) {
-        // nothing to do when cart is empty
+      if (items.length === 0) return;
+      const total = items.reduce((s, it) => s + it.price * it.qty, 0);
+      const bankChecked = !!document.getElementById('bank-transfer') && document.getElementById('bank-transfer').checked;
+      if (bankChecked) {
+        const ts = new Date().toISOString();
+        const order = { id: 'order-' + Date.now(), timestamp: ts, items, total };
+        orders.push(order);
+        saveOrdersToStorage();
+        cart = {};
+        saveCartToStorage();
+        renderCart();
+        renderMenu();
+        renderRecentPurchases();
         return;
       }
-      const total = items.reduce((s, it) => s + it.price * it.qty, 0);
+      document.getElementById('payment-total').textContent = total.toLocaleString() + '원';
+      document.getElementById('payment-amount').textContent = '0';
+      document.getElementById('payment-change').textContent = '0원';
+      document.getElementById('payment-error').textContent = '';
+      const modal = document.getElementById('payment-modal');
+      modal.style.display = 'flex';
+      modal.setAttribute('aria-hidden', 'false');
+      // focus not applied to <p>; use numpad/preset to enter amount
+    }
+
+    function hidePaymentModal() {
+      const modal = document.getElementById('payment-modal');
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function computeChange() {
+      const totalText = document.getElementById('payment-total').textContent.replace(/,/g,'').replace('원','');
+      const total = Number(totalText) || 0;
+      const paidText = document.getElementById('payment-amount').textContent.replace(/,/g,'').replace('원','');
+      const paid = Number(paidText) || 0;
+      const change = paid - total;
+      const changeEl = document.getElementById('payment-change');
+      changeEl.textContent = (change >= 0 ? change.toLocaleString() + '원' : '-' + Math.abs(change).toLocaleString() + '원');
+      const err = document.getElementById('payment-error');
+      if (paid < total) {
+        err.textContent = '지불액이 부족합니다.';
+      } else {
+        err.textContent = '';
+      }
+    }
+
+    function numpadPress(key) {
+      const el = document.getElementById('payment-amount');
+      let s = (el.textContent || '').toString().replace(/,/g,'');
+      if (key === 'C') {
+        s = '';
+      } else if (key === '←') {
+        s = s.slice(0, -1);
+      } else {
+        s = s + key;
+      }
+      s = s.replace(/^0+(?=\d)/, '');
+      el.textContent = s === '' ? '0' : String(Number(s));
+      computeChange();
+    }
+
+    function presetAdd(amount) {
+      const el = document.getElementById('payment-amount');
+      let val = Number((el.textContent || '').toString().replace(/,/g,'')) || 0;
+      val += Number(amount) || 0;
+      el.textContent = String(val);
+      computeChange();
+    }
+
+    function confirmPayment() {
+      const items = Object.values(cart).map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty }));
+      if (items.length === 0) return;
+      const totalText = document.getElementById('payment-total').textContent.replace(/,/g,'').replace('원','');
+      const total = Number(totalText) || 0;
+      const paidText = document.getElementById('payment-amount').textContent.replace(/,/g,'').replace('원','');
+      const paid = Number(paidText) || 0;
+      if (paid < total) {
+        document.getElementById('payment-error').textContent = '지불액이 부족합니다.';
+        return;
+      }
       const ts = new Date().toISOString();
       const order = { id: 'order-' + Date.now(), timestamp: ts, items, total };
       orders.push(order);
       saveOrdersToStorage();
-      // clear cart after purchase (persist silently)
       cart = {};
       saveCartToStorage();
       renderCart();
       renderMenu();
+      renderRecentPurchases();
+      hidePaymentModal();
     }
 
     // History modal functions
     function renderHistoryList() {
       const listEl = document.getElementById('history-list');
       listEl.innerHTML = '';
+      // update overall history total
+      const totalAll = (orders || []).reduce((s, o) => s + (o.total || 0), 0);
+      const historyTotalEl = document.getElementById('history-total');
+      if (historyTotalEl) historyTotalEl.textContent = '전체 총액: ' + totalAll.toLocaleString() + '원';
       if (!orders || orders.length === 0) {
         listEl.innerHTML = '<p>저장된 내역이 없습니다.</p>';
         return;
@@ -453,35 +638,18 @@
       orders.slice().reverse().forEach(o => {
         const div = document.createElement('div');
         div.className = 'history-item';
+        const itemsHtml = o.items.map(it => {
+          const lineTotal = (it.price * it.qty).toLocaleString();
+          return `<div class="history-item-row"><div class="history-item-name">${it.name} x ${it.qty}</div><div class="history-item-price">${lineTotal}원</div></div>`;
+        }).join('');
         div.innerHTML = `
-          <div class="history-meta">
+          <div style="margin-top:6px;">${itemsHtml}</div>
+          <div class="history-meta" style="margin-top:8px;">
             <div>${new Date(o.timestamp).toLocaleString()}</div>
-            <div>총액: ${o.total.toLocaleString()}원</div>
-          </div>
-          <div style="margin-top:6px;">${o.items.map(it => `${it.name} x ${it.qty}`).join('<br>')}</div>
-          <div style="margin-top:6px;">
-            <button data-id="${o.id}" class="export-order">내보내기</button>
+            <div>총액 <span class="history-item-price order-total">${o.total.toLocaleString()}원</span></div>
           </div>
         `;
         listEl.appendChild(div);
-      });
-
-      // attach export handlers
-      listEl.querySelectorAll('.export-order').forEach(btn => {
-        btn.addEventListener('click', e => {
-          const id = e.currentTarget.getAttribute('data-id');
-          const order = orders.find(x => x.id === id);
-          if (!order) return;
-          const blob = new Blob([JSON.stringify(order, null, 2)], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `${order.id}.json`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          URL.revokeObjectURL(url);
-        });
       });
     }
 
@@ -553,6 +721,8 @@
     document.getElementById('close-history').addEventListener('click', hideHistory);
     document.getElementById('export-all').addEventListener('click', exportAllHistory);
     document.getElementById('clear-history').addEventListener('click', clearHistory);
+    document.getElementById('cancel-payment').addEventListener('click', hidePaymentModal);
+    document.getElementById('confirm-payment').addEventListener('click', confirmPayment);
     // hide modal when clicking outside panel
     document.getElementById('history-modal').addEventListener('click', e => {
       if (e.target === e.currentTarget) hideHistory();
