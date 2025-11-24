@@ -11,103 +11,76 @@
       margin: 0;
       padding: 0;
       font-family: sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
 
     .layout {
       display: flex;
-      height: 100vh; /* 전체 화면 높이 */
+      height: 100vh;
     }
 
-    /* Left/right panes: left ~70%, right ~30% */
     .menu {
       box-sizing: border-box;
       flex: 0 0 70%;
       border-right: 1px solid #ddd;
       padding: 16px;
-      overflow-y: auto; /* 내부만 개별 스크롤 */
+      overflow-y: auto;
     }
 
     .cart {
+      box-sizing: border-box;
       flex: 0 0 30%;
       padding: 16px;
-      border-left: 1px solid #ddd;
       overflow-y: auto;
-      box-sizing: border-box;
     }
 
     h2 {
-      position: sticky;
       top: 0;
-      background: white;
+      background: #fff;
       padding: 10px 0;
       margin: 0 0 10px;
       border-bottom: 1px solid #eee;
     }
 
-    .menu-item, .cart-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
+    #menu-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
     }
 
-    button {
-      padding: 4px 10px;
-      cursor: pointer;
-    }
-
-    /* Quantity control used in the menu list */
-    .qty-control {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-left: 8px;
-    }
-    /* Larger, touch-friendly buttons */
-    .qty-control button {
-      padding: 8px 14px;
-      min-width: 44px;
-      font-weight: bold;
-      font-size: 16px;
-      border-radius: 6px;
-      background: #fafafa;
-      border: 1px solid #ddd;
-      cursor: pointer;
-    }
-    .qty-control button:active {
-      transform: translateY(1px);
-    }
-    .qty-control .qty {
-      min-width: 32px;
-      text-align: center;
-      display: inline-block;
-      font-weight: 600;
-      font-size: 15px;
-    }
-    /* Thumbnail for menu items */
-    .menu-item > div {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .menu-thumb {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-      border-radius: 6px 6px 0 0; /* top corners rounded; card handles bottom */
-      background: #f3f3f3;
-      flex-shrink: 0;
-    }
     .menu .menu-item {
-      overflow: hidden; /* clip overlays and rounded corners */
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+      margin-bottom: 0;
+      overflow: hidden;
     }
-    /* Thumb wrapper positions overlay text */
+
+    .menu .menu-item .card-body {
+      display: flex;
+      flex-direction: column;
+    }
+
     .thumb-wrap {
       position: relative;
       width: 100%;
       display: block;
     }
+
+    .menu-thumb {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 6px 6px 0 0;
+      background: #f3f3f3;
+      display: block;
+    }
+
     .thumb-overlay {
       position: absolute;
       left: 0;
@@ -118,57 +91,173 @@
       align-items: center;
       padding: 8px 10px;
       color: #fff;
-      background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 100%);
+      background: rgba(0,0,0,0.3);
       box-sizing: border-box;
     }
+
     .thumb-overlay .name {
       font-weight: 700;
       font-size: 14px;
       text-shadow: 0 1px 2px rgba(0,0,0,0.6);
     }
+
     .thumb-overlay .price {
       font-size: 13px;
       text-shadow: 0 1px 2px rgba(0,0,0,0.6);
     }
-    /* Grid layout for menu items */
-    #menu-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 16px;
-    }
-    /* Make menu items act like cards inside the grid */
-    .menu .menu-item {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      justify-content: flex-start;
-      border: 1px solid #eee;
-      border-radius: 8px;
-      background: #fff;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-      margin-bottom: 0; /* grid gap handles spacing */
-    }
-    .menu .menu-item .qty-control {
-      margin-left: 0;
-      margin-top: 8px;
-      /* center the qty control inside the card */
-      align-self: center;
-      justify-self: center;
+
+    .qty-control {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      gap: 8px;
+      padding: 8px;
+      box-sizing: border-box;
     }
 
-    /* Bigger buttons in the cart for consistency */
-    .cart .cart-item button {
-      padding: 8px 12px;
-      min-width: 40px;
-      font-size: 14px;
-      border-radius: 6px;
-      border: 1px solid #ddd;
-      background: #fafafa;
+    .qty-control .qty {
+      flex: 1;
+      min-width: 32px;
+      text-align: center;
+      display: inline-block;
+      font-weight: 600;
+      font-size: 15px;
     }
-    .menu .menu-item .card-body {
+
+    .qty-control button:not(.icon-btn) {
+      padding: 8px 14px;
+      min-width: 44px;
+      font-weight: bold;
+      font-size: 16px;
+      border-radius: 6px;
+      background: #fafafa;
+      border: 1px solid #ddd;
+      cursor: pointer;
+    }
+
+    .qty-control button:active {
+      transform: translateY(1px);
+    }
+
+    :root {
+      --icon-size: 36px;
+      --icon-mark-size: 16px;
+    }
+
+    .icon-btn {
+      position: relative;
+      box-sizing: border-box;
+      width: var(--icon-size);
+      height: var(--icon-size);
+      padding: 0;
+      background: #fafafa;
+      border: 1px solid #ddd;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      cursor: pointer;
+      transition: transform 0.06s ease, box-shadow 0.06s ease;
+    }
+
+    .icon-btn:focus {
+      outline: 2px solid rgba(56,161,105,0.25);
+    }
+
+    .icon-btn::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: var(--icon-mark-size);
+      height: 2px;
+      background: #333;
+      border-radius: 1px;
+    }
+
+    .icon-btn.plus::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 2px;
+      height: var(--icon-mark-size);
+      background: #333;
+      border-radius: 1px;
+    }
+
+    .menu .menu-item .qty-control {
+      align-self: center;
+    }
+
+    .cart-item {
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
       gap: 8px;
+      padding: 8px 0;
+    }
+
+    .cart-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .cart-buttons button {
+      flex: 1 1 auto;
+      padding: 10px 12px;
+      font-weight: 700;
+      border-radius: 6px;
+      border: 1px solid #2b8a3e;
+      background: #38a169;
+      color: #fff;
+    }
+
+    .cart-buttons button.secondary {
+      background: #f5f5f5;
+      color: #333;
+      border: 1px solid #ddd;
+    }
+
+    .history-modal {
+      position: fixed;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .history-modal .panel {
+      width: 90%;
+      max-width: 720px;
+      max-height: 80vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .history-item {
+      border-bottom: 1px solid #eee;
+      padding: 8px 0;
+    }
+
+    .history-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 13px;
+      color: #666;
     }
   </style>
 </head>
@@ -183,10 +272,26 @@
 
     <!-- 우측 선택한 메뉴 -->
     <div class="cart">
-      <h2>선택한 메뉴</h2>
+      <h2>계산서</h2>
       <div id="cart-list"></div>
       <hr />
       <h3>총 합계: <span id="total-price">0</span>원</h3>
+      <div class="cart-buttons">
+        <button id="purchase-btn">구매하기</button>
+        <button id="history-btn" class="secondary">내역보기</button>
+      </div>
+      <!-- history modal -->
+      <div id="history-modal" class="history-modal" aria-hidden="true">
+        <div class="panel">
+          <h3>구매 내역</h3>
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <button id="export-all" class="secondary">내역 내보내기</button>
+            <button id="clear-history" class="secondary">내역 비우기</button>
+            <button id="close-history" style="margin-left:auto;">닫기</button>
+          </div>
+          <div id="history-list"></div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -198,6 +303,50 @@
     const menuEl = document.getElementById("menu-list");
     const cartEl = document.getElementById("cart-list");
     const totalEl = document.getElementById("total-price");
+    // Local storage key for persistent cart
+    const CART_KEY = "dnf_cart_v1";
+    const ORDERS_KEY = "dnf_orders_v1";
+
+    // Save cart to localStorage
+    function saveCartToStorage() {
+      try {
+        localStorage.setItem(CART_KEY, JSON.stringify(cart));
+      } catch (e) {
+        console.warn("saveCart failed", e);
+      }
+    }
+
+    // Load cart from localStorage (if present)
+    function loadCartFromStorage() {
+      try {
+        const raw = localStorage.getItem(CART_KEY);
+        if (!raw) return;
+        cart = JSON.parse(raw) || {};
+      } catch (e) {
+        console.warn("loadCart failed", e);
+        cart = {};
+      }
+    }
+
+    // Orders (purchase history)
+    let orders = [];
+    function saveOrdersToStorage() {
+      try {
+        localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+      } catch (e) {
+        console.warn('saveOrders failed', e);
+      }
+    }
+    function loadOrdersFromStorage() {
+      try {
+        const raw = localStorage.getItem(ORDERS_KEY);
+        if (!raw) return;
+        orders = JSON.parse(raw) || [];
+      } catch (e) {
+        console.warn('loadOrders failed', e);
+        orders = [];
+      }
+    }
 
     // CSV 로드
     async function loadCSV() {
@@ -233,9 +382,9 @@
               </div>
             </div>
             <div class="qty-control">
-              <button onclick="decrease(${item.id})">-</button>
               <span class="qty">${qty}</span>
-              <button onclick="addToCart(${item.id})">+</button>
+              <button class="icon-btn minus" onclick="decrease(${item.id})" aria-label="감소"></button>
+              <button class="icon-btn plus" onclick="addToCart(${item.id})" aria-label="증가"></button>
             </div>
           </div>
         `;
@@ -260,8 +409,8 @@
         div.innerHTML = `
           <span>${item.name} x ${item.qty}</span>
           <div>
-            <button onclick="addToCart(${item.id})">+</button>
-            <button onclick="decrease(${item.id})">-</button>
+            <button class="icon-btn minus" onclick="decrease(${item.id})" aria-label="감소"></button>
+            <button class="icon-btn plus" onclick="addToCart(${item.id})" aria-label="증가"></button>
           </div>
         `;
         cartEl.appendChild(div);
@@ -274,6 +423,99 @@
       totalEl.textContent = total.toLocaleString();
     }
 
+    // create an order from current cart, save to orders and trigger download
+    function purchase() {
+      const items = Object.values(cart).map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty }));
+      if (items.length === 0) {
+        // nothing to do when cart is empty
+        return;
+      }
+      const total = items.reduce((s, it) => s + it.price * it.qty, 0);
+      const ts = new Date().toISOString();
+      const order = { id: 'order-' + Date.now(), timestamp: ts, items, total };
+      orders.push(order);
+      saveOrdersToStorage();
+      // clear cart after purchase (persist silently)
+      cart = {};
+      saveCartToStorage();
+      renderCart();
+      renderMenu();
+    }
+
+    // History modal functions
+    function renderHistoryList() {
+      const listEl = document.getElementById('history-list');
+      listEl.innerHTML = '';
+      if (!orders || orders.length === 0) {
+        listEl.innerHTML = '<p>저장된 내역이 없습니다.</p>';
+        return;
+      }
+      orders.slice().reverse().forEach(o => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `
+          <div class="history-meta">
+            <div>${new Date(o.timestamp).toLocaleString()}</div>
+            <div>총액: ${o.total.toLocaleString()}원</div>
+          </div>
+          <div style="margin-top:6px;">${o.items.map(it => `${it.name} x ${it.qty}`).join('<br>')}</div>
+          <div style="margin-top:6px;">
+            <button data-id="${o.id}" class="export-order">내보내기</button>
+          </div>
+        `;
+        listEl.appendChild(div);
+      });
+
+      // attach export handlers
+      listEl.querySelectorAll('.export-order').forEach(btn => {
+        btn.addEventListener('click', e => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const order = orders.find(x => x.id === id);
+          if (!order) return;
+          const blob = new Blob([JSON.stringify(order, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${order.id}.json`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        });
+      });
+    }
+
+    function showHistory() {
+      const modal = document.getElementById('history-modal');
+      renderHistoryList();
+      modal.style.display = 'flex';
+      modal.setAttribute('aria-hidden', 'false');
+    }
+    function hideHistory() {
+      const modal = document.getElementById('history-modal');
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function exportAllHistory() {
+      const blob = new Blob([JSON.stringify(orders, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `orders-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearHistory() {
+      if (!confirm('정말로 모든 내역을 삭제하시겠습니까?')) return;
+      orders = [];
+      saveOrdersToStorage();
+      renderHistoryList();
+    }
+
     // 추가
     function addToCart(id) {
       const item = menuList.find(m => m.id === id);
@@ -282,6 +524,8 @@
       // update both sides so the menu qty reflects changes
       renderCart();
       renderMenu();
+      // persist cart locally
+      saveCartToStorage();
     }
 
     // 감소
@@ -292,10 +536,27 @@
       // update both sides so the menu qty reflects changes
       renderCart();
       renderMenu();
+      // persist cart locally
+      saveCartToStorage();
     }
 
-    // 초기 실행
+    // 초기 실행: 먼저 로컬에 저장된 장바구니/내역 불러오기, 그 다음 메뉴 로드
+    loadCartFromStorage();
+    loadOrdersFromStorage();
     loadCSV();
+    // 렌더 카트 한 번 실행해서 복원된 장바구니를 화면에 표시
+    renderCart();
+
+    // wire up history & purchase buttons
+    document.getElementById('purchase-btn').addEventListener('click', purchase);
+    document.getElementById('history-btn').addEventListener('click', showHistory);
+    document.getElementById('close-history').addEventListener('click', hideHistory);
+    document.getElementById('export-all').addEventListener('click', exportAllHistory);
+    document.getElementById('clear-history').addEventListener('click', clearHistory);
+    // hide modal when clicking outside panel
+    document.getElementById('history-modal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) hideHistory();
+    });
   </script>
 
 </body>
